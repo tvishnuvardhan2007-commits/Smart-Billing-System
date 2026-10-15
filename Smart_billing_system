@@ -1,107 +1,105 @@
-# SMART BILLING SYSTEM
+import pandas as pd
+import matplotlib.pyplot as plt
 
-print("===================================")
-print("       SMART BILLING SYSTEM")
-print("===================================")
+# ==============================
+# SMART BILLING SYSTEM ANALYSIS
+# ==============================
 
-# Store product details
-products = {
-    "Rice": 60,
-    "Milk": 30,
-    "Sugar": 45,
-    "Oil": 150,
-    "Biscuits": 20,
-    "Soap": 35
-}
+# Read Excel File
+df = pd.read_excel("smart_billing_dataset.xlsx")
 
-print("\nAvailable Products:")
-print("-----------------------------------")
-print("Product          Price (Rs.)")
-print("-----------------------------------")
+# Display Dataset
+print("\n========== SMART BILLING DATA ==========\n")
+print(df)
 
-for product, price in products.items():
-    print(product, "         ", price)
+# -----------------------------------
+# Total Sales
+# -----------------------------------
+total_sales = df["Total_Amount"].sum()
+print("\nTotal Sales: ₹", total_sales)
 
-print("-----------------------------------")
+# -----------------------------------
+# Total Products Sold
+# -----------------------------------
+total_products = df["Quantity"].sum()
+print("Total Products Sold:", total_products)
 
-# Customer details
-customer = input("\nEnter customer name: ")
+# -----------------------------------
+# Total Customers
+# -----------------------------------
+print("Total Customers:", df["Customer_ID"].nunique())
+# -----------------------------------
+# Maximum Bill
+# -----------------------------------
+max_bill = df["Total_Amount"].max()
+print("Highest Bill Amount: ₹", max_bill)
 
-total = 0
-bill_items = []
+# -----------------------------------
+# Average Bill
+# -----------------------------------
+avg_bill = df["Total_Amount"].mean()
+print("Average Bill Amount: ₹", round(avg_bill,2))
 
-# Number of products
-n = int(input("Enter number of different products: "))
+# -----------------------------------
+# Product-wise Sales
+# -----------------------------------
+print("\nProduct Wise Sales")
+print(df.groupby("Product_Name")["Total_Amount"].sum())
 
-# Enter product details
-for i in range(n):
+# -----------------------------------
+# Category-wise Sales
+# -----------------------------------
+print("\nCategory Wise Sales")
+print(df.groupby("Category")["Total_Amount"].sum())
 
-    print("\nProduct", i + 1)
+# -----------------------------------
+# Payment Mode Count
+# -----------------------------------
+print("\nPayment Mode Usage")
+print(df["Payment_Mode"].value_counts())
 
-    name = input("Enter product name: ").title()
+# -----------------------------------
+# Low Stock Alert
+# -----------------------------------
+print("\nLow Stock Products")
+low_stock = df[df["Stock_Left"] < 50]
+print(low_stock[["Product_Name","Stock_Left"]])
 
-    if name in products:
+# ==========================================
+# CHART 1 : Product Wise Sales
+# ==========================================
+sales = df.groupby("Product_Name")["Total_Amount"].sum()
 
-        quantity = int(input("Enter quantity: "))
+plt.figure(figsize=(8,5))
+plt.bar(sales.index, sales.values)
+plt.title("Product Wise Sales")
+plt.xlabel("Products")
+plt.ylabel("Sales (₹)")
+plt.xticks(rotation=45)
+plt.show()
 
-        if quantity <= 0:
-            print("Invalid quantity!")
-            continue
+# ==========================================
+# CHART 2 : Payment Mode
+# ==========================================
+payment = df["Payment_Mode"].value_counts()
 
-        price = products[name]
-        amount = price * quantity
+plt.figure(figsize=(6,6))
+plt.pie(payment.values,
+        labels=payment.index,
+        autopct="%1.1f%%",
+        startangle=90)
+plt.title("Payment Mode Distribution")
+plt.show()
 
-        total = total + amount
+# ==========================================
+# CHART 3 : Stock Remaining
+# ==========================================
+plt.figure(figsize=(8,5))
+plt.bar(df["Product_Name"], df["Stock_Left"])
+plt.title("Remaining Stock")
+plt.xlabel("Products")
+plt.ylabel("Stock Left")
+plt.xticks(rotation=45)
+plt.show()
 
-        bill_items.append(
-            (name, price, quantity, amount)
-        )
-
-        print("Product:", name)
-        print("Price: Rs.", price)
-        print("Quantity:", quantity)
-        print("Amount: Rs.", amount)
-
-    else:
-        print("Product not available!")
-
-# Calculate discount
-if total >= 500:
-    discount = total * 0.10
-elif total >= 200:
-    discount = total * 0.05
-else:
-    discount = 0
-
-# Calculate GST after discount
-subtotal = total - discount
-gst = subtotal * 0.05
-
-# Final amount
-final_amount = subtotal + gst
-
-# Display bill
-print("\n===================================")
-print("            CUSTOMER BILL")
-print("===================================")
-
-print("Customer Name:", customer)
-
-print("-----------------------------------")
-print("Product  Price  Qty  Amount")
-print("-----------------------------------")
-
-for name, price, quantity, amount in bill_items:
-    print(name, price, quantity, amount)
-
-print("-----------------------------------")
-print("Total Amount: Rs.", round(total, 2))
-print("Discount: Rs.", round(discount, 2))
-print("GST (5%): Rs.", round(gst, 2))
-print("-----------------------------------")
-print("FINAL BILL: Rs.", round(final_amount, 2))
-print("===================================")
-
-print("Thank you for shopping!")
-print("Visit Again!")
-print("===================================")
+print("\nAnalysis Completed Successfully!")
