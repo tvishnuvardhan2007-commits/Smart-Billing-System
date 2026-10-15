@@ -1,105 +1,35 @@
-import pandas as pd
-import matplotlib.pyplot as plt
+#!/usr/bin/env python3
+"""CLI entry point retained for the repository's original filename."""
+import argparse
+import json
+from pathlib import Path
 
-# ==============================
-# SMART BILLING SYSTEM ANALYSIS
-# ==============================
+from src.retail_ml import load_dataset, summarize, train_demand_model, write_report
 
-# Read Excel File
-df = pd.read_excel("smart_billing_dataset.xlsx")
 
-# Display Dataset
-print("\n========== SMART BILLING DATA ==========\n")
-print(df)
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--data', default='data/sample_retail_transactions.csv', help='CSV or Excel transaction dataset')
+    parser.add_argument('--output-dir', default='reports', help='Directory for JSON reports')
+    parser.add_argument('--skip-ml', action='store_true', help='Only produce descriptive summaries')
+    args = parser.parse_args()
+    frame = load_dataset(args.data)
+    out = Path(args.output_dir)
+    out.mkdir(parents=True, exist_ok=True)
+    summary = summarize(frame)
+    write_report(summary, out / 'summary.json')
+    print('SMART BILLING & RETAIL INTELLIGENCE')
+    print(json.dumps(summary, indent=2))
+    if not args.skip_ml:
+        model_report = train_demand_model(frame)
+        write_report(model_report, out / 'demand_model_metrics.json')
+        print('\nDEMAND MODEL')
+        print(json.dumps(model_report, indent=2))
+        if model_report.get('available'):
+            import pandas as pd
+            pd.DataFrame(model_report['predictions']).to_csv(out / 'demand_forecast_holdout.csv', index=False)
+    print(f'\nReports written to {out.resolve()}')
 
-# -----------------------------------
-# Total Sales
-# -----------------------------------
-total_sales = df["Total_Amount"].sum()
-print("\nTotal Sales: ₹", total_sales)
 
-# -----------------------------------
-# Total Products Sold
-# -----------------------------------
-total_products = df["Quantity"].sum()
-print("Total Products Sold:", total_products)
-
-# -----------------------------------
-# Total Customers
-# -----------------------------------
-print("Total Customers:", df["Customer_ID"].nunique())
-# -----------------------------------
-# Maximum Bill
-# -----------------------------------
-max_bill = df["Total_Amount"].max()
-print("Highest Bill Amount: ₹", max_bill)
-
-# -----------------------------------
-# Average Bill
-# -----------------------------------
-avg_bill = df["Total_Amount"].mean()
-print("Average Bill Amount: ₹", round(avg_bill,2))
-
-# -----------------------------------
-# Product-wise Sales
-# -----------------------------------
-print("\nProduct Wise Sales")
-print(df.groupby("Product_Name")["Total_Amount"].sum())
-
-# -----------------------------------
-# Category-wise Sales
-# -----------------------------------
-print("\nCategory Wise Sales")
-print(df.groupby("Category")["Total_Amount"].sum())
-
-# -----------------------------------
-# Payment Mode Count
-# -----------------------------------
-print("\nPayment Mode Usage")
-print(df["Payment_Mode"].value_counts())
-
-# -----------------------------------
-# Low Stock Alert
-# -----------------------------------
-print("\nLow Stock Products")
-low_stock = df[df["Stock_Left"] < 50]
-print(low_stock[["Product_Name","Stock_Left"]])
-
-# ==========================================
-# CHART 1 : Product Wise Sales
-# ==========================================
-sales = df.groupby("Product_Name")["Total_Amount"].sum()
-
-plt.figure(figsize=(8,5))
-plt.bar(sales.index, sales.values)
-plt.title("Product Wise Sales")
-plt.xlabel("Products")
-plt.ylabel("Sales (₹)")
-plt.xticks(rotation=45)
-plt.show()
-
-# ==========================================
-# CHART 2 : Payment Mode
-# ==========================================
-payment = df["Payment_Mode"].value_counts()
-
-plt.figure(figsize=(6,6))
-plt.pie(payment.values,
-        labels=payment.index,
-        autopct="%1.1f%%",
-        startangle=90)
-plt.title("Payment Mode Distribution")
-plt.show()
-
-# ==========================================
-# CHART 3 : Stock Remaining
-# ==========================================
-plt.figure(figsize=(8,5))
-plt.bar(df["Product_Name"], df["Stock_Left"])
-plt.title("Remaining Stock")
-plt.xlabel("Products")
-plt.ylabel("Stock Left")
-plt.xticks(rotation=45)
-plt.show()
-
-print("\nAnalysis Completed Successfully!")
+if __name__ == '__main__':
+    main()
