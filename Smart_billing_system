@@ -1,0 +1,107 @@
+# SMART BILLING SYSTEM
+
+print("===================================")
+print("       SMART BILLING SYSTEM")
+print("===================================")
+
+# Store product details
+products = {
+    "Rice": 60,
+    "Milk": 30,
+    "Sugar": 45,
+    "Oil": 150,
+    "Biscuits": 20,
+    "Soap": 35
+}
+
+print("\nAvailable Products:")
+print("-----------------------------------")
+print("Product          Price (Rs.)")
+print("-----------------------------------")
+
+for product, price in products.items():
+    print(product, "         ", price)
+
+print("-----------------------------------")
+
+# Customer details
+customer = input("\nEnter customer name: ")
+
+total = 0
+bill_items = []
+
+# Number of products
+n = int(input("Enter number of different products: "))
+
+# Enter product details
+for i in range(n):
+
+    print("\nProduct", i + 1)
+
+    name = input("Enter product name: ").title()
+
+    if name in products:
+
+        quantity = int(input("Enter quantity: "))
+
+        if quantity <= 0:
+            print("Invalid quantity!")
+            continue
+
+        price = products[name]
+        amount = price * quantity
+
+        total = total + amount
+
+        bill_items.append(
+            (name, price, quantity, amount)
+        )
+
+        print("Product:", name)
+        print("Price: Rs.", price)
+        print("Quantity:", quantity)
+        print("Amount: Rs.", amount)
+
+    else:
+        print("Product not available!")
+
+# Calculate discount
+if total >= 500:
+    discount = total * 0.10
+elif total >= 200:
+    discount = total * 0.05
+else:
+    discount = 0
+
+# Calculate GST after discount
+subtotal = total - discount
+gst = subtotal * 0.05
+
+# Final amount
+final_amount = subtotal + gst
+
+# Display bill
+print("\n===================================")
+print("            CUSTOMER BILL")
+print("===================================")
+
+print("Customer Name:", customer)
+
+print("-----------------------------------")
+print("Product  Price  Qty  Amount")
+print("-----------------------------------")
+
+for name, price, quantity, amount in bill_items:
+    print(name, price, quantity, amount)
+
+print("-----------------------------------")
+print("Total Amount: Rs.", round(total, 2))
+print("Discount: Rs.", round(discount, 2))
+print("GST (5%): Rs.", round(gst, 2))
+print("-----------------------------------")
+print("FINAL BILL: Rs.", round(final_amount, 2))
+print("===================================")
+
+print("Thank you for shopping!")
+print("Visit Again!")
+print("===================================")
